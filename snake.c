@@ -8,13 +8,16 @@
 
 #define LINES 8
 #define COLS 16
-	
+
 #define APPLE 64
 #define SNAKE 254
 #define BLANK 250
 
+#define RED "31"
+#define GREEN "32"
+
 int running=1;
-int move_x = 1, move_y = 0;
+int addto_x = 0, addto_y = 1;
 
 typedef struct snake{
 	int x;
@@ -43,39 +46,39 @@ void error(char str[]){
 
 DWORD WINAPI getkey(LPVOID Param){
 	char key;
-	while(running==1){
+	while(running){
 		key = getch();
 		switch(key){
 			case 'w':
 			case 'W':
 			case 'H':
-				if(move_y) break;
-				move_x = 0;
-				move_y = -1;
+				if(addto_x) break;
+				addto_x = -1;
+				addto_y = 0;
 				break;
 			
 			case 'a':
 			case 'A':
 			case 'K':
-				if(move_x) break;
-				move_x = -1;
-				move_y = 0;
+				if(addto_y) break;
+				addto_x = 0;
+				addto_y = -1;
 				break;
 			
 			case 'd':
 			case 'D': 
 			case 'M':
-				if(move_x) break;
-				move_x = 1;
-				move_y = 0;
+				if(addto_y) break;
+				addto_x = 0;
+				addto_y = 1;
 				break;
 			
 			case 's':
 			case 'S':
 			case 'P':
-				if(move_y) break;
-				move_x = 0;
-				move_y = 1;
+				if(addto_x) break;
+				addto_x = 1;
+				addto_y = 0;
 				break;
 				
 			case 13:
@@ -98,26 +101,26 @@ DWORD WINAPI game(LPVOID Param){
 	Snake* curr;
 	Snake* next;
 	int apple_count=0;
-	int x[2] = {0, 0};
-	int y[2] = {0, 0};
+	int x_temp[2] = {0, 0};
+	int y_temp[2] = {0, 0};
 	
 	int i=0, j, k;
 	
 	srand(time(NULL));
 	
-	while(running==1){
+	while(running){
 		Sleep(350);
 		system("cls");
 		
 		for(i=0;i<LINES;i++) memset(grid[i], BLANK, COLS);
 		
-		if(head->x == apple[1] && head->y == apple[0]){
-			if(apple_count == 15) running = 2;
+		if(head->x == apple[0] && head->y == apple[1]){
+			if(apple_count == 15) running = 0;
 			apple[0] = rand()%LINES;
 			apple[1] = rand()%COLS;
 			
 			for(curr=head; curr!=NULL; curr=curr->next){
-				if(curr->x == apple[1] && curr->y == apple[0]){
+				if(curr->x == apple[0] && curr->y == apple[1]){
 					apple[0] = rand()%LINES;
 					apple[1] = rand()%COLS;
 				}
@@ -129,20 +132,20 @@ DWORD WINAPI game(LPVOID Param){
 			apple_count++;
 		}
 		
-		x[0] = head->x;
-		y[0] = head->y;
-		head->x = (head->x + move_x) % COLS;
-		head->y = (head->y + move_y) % LINES;
-		if(head->x < 0) head->x = COLS-1;
-		if(head->y < 0) head->y = LINES-1;
+		x_temp[0] = head->x;
+		y_temp[0] = head->y;
+		head->x = (head->x + addto_x) % LINES;
+		head->y = (head->y + addto_y) % COLS;
+		if(head->x < 0) head->x = LINES-1;
+		if(head->y < 0) head->y = COLS-1;
 		
 		for(curr=head->next; curr!=NULL; curr=curr->next){
-			x[1] = curr->x;
-			y[1] = curr->y;
-			curr->x = x[0];
-			curr->y = y[0];
-			x[0] = x[1];
-			y[0] = y[1];
+			x_temp[1] = curr->x;
+			y_temp[1] = curr->y;
+			curr->x = x_temp[0];
+			curr->y = y_temp[0];
+			x_temp[0] = x_temp[1];
+			y_temp[0] = y_temp[1];
 		}
 		
 		for(curr=head->next; curr!=NULL; curr=curr->next){
@@ -158,12 +161,12 @@ DWORD WINAPI game(LPVOID Param){
 		
 		grid[apple[0]][apple[1]] = APPLE;
 		for(curr=head; curr!=NULL; curr=curr->next){
-			grid[curr->y][curr->x] = SNAKE;
+			grid[curr->x][curr->y] = SNAKE;
 		}
 		
 		for(i=0; i<LINES; i++){
 			for(j=0; j<COLS; j++){
-				printf("\033[%sm", (grid[i][j]==APPLE)?"31":"32");
+				printf("\033[%sm", (grid[i][j]==APPLE)? RED : GREEN);
 				putc(grid[i][j], stdout);
 				printf("\033[m");
 			}
@@ -177,7 +180,7 @@ DWORD WINAPI game(LPVOID Param){
 		}
 	}
 	
-	if(running==2) printf("\033[33mCongratulations!\n\n\033[m\n");
+	if(apple_count==16) printf("\033[33mCongratulations!\n\n\033[m\n");
 	else printf("\033[33mGame Over!\033[m\n");
 	
 	release(head);
