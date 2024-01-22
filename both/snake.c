@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 #include <pthread.h>
 
 #define LINES 8
@@ -15,9 +16,54 @@
 #define RED "31"
 #define GREEN "32"
 
+void error(char str[]){
+	fprintf(stderr, "\033[31mError: %s.\033[m", str);
+	exit(1);
+}
+
+#if __has_include(<windows.h>)
+	#include <windows.h>
+
+	DWORD ThreadId[2];
+	HANDLE ThreadHandle[2];
+
+	void createThreads(DWORD WINAPI (*gameFunction)(LPVOID), DWORD WINAPI (*getkeyFunction)(LPVOID)){
+		ThreadHandle[0] = CreateThread(NULL, 0, gameFunction, NULL, 0, &(ThreadId[0]));
+		ThreadHandle[1] = CreateThread(NULL, 0, getkeyFunction, NULL, 0, &(ThreadId[1]));
+		
+		if(!ThreadHandle[0]) error("Can't create thread 0 (game)");
+		if(!ThreadHandle[1]) error("Can't create thread 1 (getkey)");
+	}
+
+	void executeThreads(){
+		WaitForSingleObject(ThreadHandle[0], INFINITE);
+		WaitForSingleObject(ThreadHandle[1], INFINITE);
+		
+		CloseHandle(ThreadHandle[0]);
+		CloseHandle(ThreadHandle[1]);
+	}
+
+#else
+	#include <pthread.h>
+
+	pthread_t threads[2];
+	void* results;
+
+	void createThreads(void* (*game_func)(void*), void* (*getkey_func)(void*)){
+		if(pthread_create(&threads[0], NULL, game_func, NULL) == -1) error("Can't create thread 0 (game)");
+		if(pthread_create(&threads[1], NULL, getkey_func, NULL) == -1) error("Can't create thread 1 (getkey)");
+	}
+
+	void executeThreads(){
+		if(pthread_join(threads[0], &results) == -1) error("Can't join thread 0 (game)");
+		if(pthread_join(threads[1], &results) == -1) error("Can't join thread 1 (getkey)");
+	}
+#endif
+
 int running = 1;
 int addto_x = 0, addto_y = 1;
 
+/*
 typedef struct snake{
 	int x;
 	int y;
@@ -37,15 +83,16 @@ void release(Snake* snake_head){
 	if(snake_head->next) release(snake_head->next);
 	free(snake_head);
 }
+*/
 
-void error(char str[]){
-	fprintf(stderr, "\033[31mError: %s.\033[m", str);
-	exit(1);
-}
-
-void* getkey(void* param){
+#if __has_include(<windows.h>)
+DWORD WINAPI getkey(LPVOID Param)
+#else
+void* getkey(void* param)
+#endif
+{
 	char key;
-	while(running){
+	while(running==1){
 		key = getch();
 		switch(key){
 			case 'w':
@@ -90,7 +137,12 @@ void* getkey(void* param){
 	return 0;
 }
 
-void* game(void* param){
+#if __has_include(<windows.h>)
+DWORD WINAPI game(LPVOID Param)
+#else
+void* game(void* param)
+#endif
+{
 	char grid[LINES][COLS];
 	
 	int apple[2] = {2, 3};
@@ -183,14 +235,7 @@ void* game(void* param){
 }
 
 int main(){
-	pthread_t threads[2];
-	
-	if(pthread_create(&threads[0], NULL, game, NULL) == -1) error("Can't create thread 0 (game)");
-	if(pthread_create(&threads[1], NULL, getkey, NULL) == -1) error("Can't create thread 1 (getkey)");
-	
-	void* results;
-	if(pthread_join(threads[0], &results) == -1) error("Can't join thread 0 (game)");
-	if(pthread_join(threads[1], &results) == -1) error("Can't join thread 1 (getkey)");
-	
+	createThreads(game, getkey);
+	executeThreads();
 	return 0;
 }

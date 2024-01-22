@@ -95,10 +95,10 @@ DWORD WINAPI game(LPVOID Param){
 	
 	int apple[2] = {2, 3};
 	
-	Snake* head = new_Snake(0, 0);
-	Snake* tail = head;
-	Snake* curr;
-	Snake* next;
+	int snake[LINES*COLS][2];
+	int snake_length = 1;
+	memset(snake, 0, sizeof(snake));
+
 	int apple_count=0;
 	int x_temp[2] = {0, 0};
 	int y_temp[2] = {0, 0};
@@ -107,60 +107,57 @@ DWORD WINAPI game(LPVOID Param){
 	
 	srand(time(NULL));
 	
-	while(running){
+	while(running==1){
 		Sleep(350);
 		system("cls");
 		
 		for(i=0;i<LINES;i++) memset(grid[i], BLANK, COLS);
 		
-		if(head->x == apple[0] && head->y == apple[1]){
-			if(apple_count == 15) running = 0;
+		if(snake[0][0] == apple[0] && snake[0][1] == apple[1]){
+			// if(apple_count == 15) running = 0;
 			apple[0] = rand()%LINES;
 			apple[1] = rand()%COLS;
 			
-			for(curr=head; curr!=NULL; curr=curr->next){
-				if(curr->x == apple[0] && curr->y == apple[1]){
+			for(i=0; i<snake_length ; i++){
+				if(snake[i][0] == apple[0] && snake[i][1] == apple[1]){
 					apple[0] = rand()%LINES;
 					apple[1] = rand()%COLS;
 				}
 			}
-			
-			tail->next = new_Snake(0,0);
-			tail = tail->next;
-			
+			snake_length++;
 			apple_count++;
 		}
 		
-		x_temp[0] = head->x;
-		y_temp[0] = head->y;
-		head->x = (head->x + addto_x) % LINES;
-		head->y = (head->y + addto_y) % COLS;
-		if(head->x < 0) head->x = LINES-1;
-		if(head->y < 0) head->y = COLS-1;
+		x_temp[0] = snake[0][0];
+		y_temp[0] = snake[0][1];
+		snake[0][0] = (snake[0][0] + addto_x) % LINES;
+		snake[0][1] = (snake[0][1] + addto_y) % COLS;
+		if(snake[0][0] < 0) snake[0][0] = LINES-1;
+		if(snake[0][1] < 0) snake[0][1] = COLS-1;
 		
-		for(curr=head->next; curr!=NULL; curr=curr->next){
-			x_temp[1] = curr->x;
-			y_temp[1] = curr->y;
-			curr->x = x_temp[0];
-			curr->y = y_temp[0];
+		for(i=1; i<snake_length; i++){
+			x_temp[1] = snake[i][0];
+			y_temp[1] = snake[i][1];
+			snake[i][0] = x_temp[0];
+			snake[i][1] = y_temp[0];
 			x_temp[0] = x_temp[1];
 			y_temp[0] = y_temp[1];
 		}
 		
-		for(curr=head->next; curr!=NULL; curr=curr->next){
-			if(head->x == curr->x && head->y == curr->y){
+		for(i=1; i<snake_length; i++){
+			if(snake[0][0] == snake[i][0] && snake[0][1] == snake[i][1]){
 				running = 0;
 				continue;
 			}
 		}
 		
 		printf("\033[92m~~ SNAKE GAME ~~\n\n");
-		printf("\033[32m%c\033[m snake: (%d, %d)\n", SNAKE, head->x, head->y);
+		printf("\033[32m%c\033[m snake: (%d, %d)\n", SNAKE, snake[0][0], snake[0][1]);
 		printf("\033[31m%c\033[m apples: %d\n\n", APPLE, apple_count);
 		
 		grid[apple[0]][apple[1]] = APPLE;
-		for(curr=head; curr!=NULL; curr=curr->next){
-			grid[curr->x][curr->y] = SNAKE;
+		for(i=0; i<snake_length; i++){
+			grid[snake[i][0]][snake[i][1]] = SNAKE;
 		}
 		
 		for(i=0; i<LINES; i++){
@@ -179,10 +176,9 @@ DWORD WINAPI game(LPVOID Param){
 		}
 	}
 	
-	if(apple_count==16) printf("\033[33mCongratulations!\n\n\033[m\n");
+	if(apple_count==(LINES*COLS)-1) printf("\033[33mCongratulations!\n\n\033[m\n");
 	else printf("\033[33mGame Over!\033[m\n");
 	
-	release(head);
 	return 0;
 }
 
