@@ -18,26 +18,6 @@
 int running = 1;
 int addto_x = 0, addto_y = 1;
 
-typedef struct snake{
-	int x;
-	int y;
-	struct snake* next;
-} Snake;
-
-Snake* new_Snake(int x, int y){
-	Snake* snake;
-	snake = (Snake*) malloc(sizeof(snake));
-	snake->x = x;
-	snake->y = y;
-	snake->next = NULL;
-	return snake;
-}
-
-void release(Snake* snake_head){
-	if(snake_head->next) release(snake_head->next);
-	free(snake_head);
-}
-
 void error(char str[]){
 	fprintf(stderr, "\033[31mError: %s.\033[m", str);
 	exit(1);
