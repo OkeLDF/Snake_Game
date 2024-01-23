@@ -1,4 +1,4 @@
-<h1 style="align-content: center; font-family:Consolas, Courier, monospace; color:#00ff60">
+<h1 style="align-content: center; font-family:Consolas, Courier, monospace; color:lime">
     ~~~ SNAKE GAME ~~~
 </h1>
 <ul style="list-style:none">
