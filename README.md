@@ -5,5 +5,5 @@
 The classic snake game from arcades, made in C.
 
 <h2>Controls</h2>
-Use the `WASD` or the `ARROW KEYS` to move the snake.
-End the game with `ENTER`.
+Use the WASD or the ARROW KEYS to move the snake.
+End the game with ENTER.
