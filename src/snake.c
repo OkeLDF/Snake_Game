@@ -7,6 +7,9 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#define goto(x, y) printf("\033[%d;%dH",(x),(y));
+#define clrscr() printf("\033[H\033[J");
+
 #define LINES 8
 #define COLS 16
 
@@ -107,11 +110,12 @@ void* game(void* param){
 	
 	int i=0, j, k;
 	
+	clrscr();
 	srand(time(NULL));
 	
 	while(running==1){
 		msleep(200);
-		system("cls");
+		goto(0, 0);
 		
 		for(i=0;i<LINES;i++) memset(grid[i], BLANK, COLS);
 		
@@ -139,6 +143,7 @@ void* game(void* param){
 		   snake[0][1] < 0 || snake[0][1] == COLS){
 			snake[0][0] -= addto_x;
 			snake[0][1] -= addto_y;
+			clrscr();
 			running = 0;
 		}
 		
@@ -153,6 +158,7 @@ void* game(void* param){
 		
 		for(i=1; i<snake_length; i++){
 			if(snake[0][0] == snake[i][0] && snake[0][1] == snake[i][1]){
+				clrscr();
 				running = 0;
 				continue;
 			}
@@ -176,11 +182,6 @@ void* game(void* param){
 			puts("");
 		}
 		puts("");
-		
-		if(apple_count < 2){
-			printf("\033[90mUse the arrow keys or WASD\nto move the snake\n\n");
-			printf("\033[90mUse ENTER to end the game\n\n");
-		}
 	}
 	
 	if(apple_count==(LINES*COLS)-1) printf("\033[33mCongratulations!\n\n\033[m\n");
