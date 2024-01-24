@@ -9,6 +9,8 @@
 
 #define goto(x, y) printf("\033[%d;%dH",(x),(y));
 #define clrscr() printf("\033[H\033[J");
+#define hidecursor() printf("\e[?25l");
+#define showcursor() printf("\e[?25h");
 
 #define LINES 8
 #define COLS 16
@@ -110,6 +112,7 @@ void* game(void* param){
 	
 	int i=0, j, k;
 	
+	hidecursor();
 	clrscr();
 	srand(time(NULL));
 	
@@ -187,6 +190,7 @@ void* game(void* param){
 	if(apple_count==(LINES*COLS)-1) printf("\033[33mCongratulations!\n\n\033[m\n");
 	else printf("\033[33mGame Over!\033[m\n");
 	
+	showcursor();
 	return 0;
 }
 
