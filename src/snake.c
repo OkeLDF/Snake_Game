@@ -1,11 +1,38 @@
 #include <stdio.h>
-#include <conio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <errno.h>
 #include <unistd.h>
 #include <pthread.h>
+
+#ifdef _WIN32
+	#include <conio.h>
+	#define SNAKE 254
+	#define BLANK 250
+#else
+	#define SNAKE '#'
+	#define BLANK '-'
+	#include <termios.h>
+	char getch(){
+		char c;
+		struct termios oldattr, newattr;
+
+		tcgetattr(STDIN_FILENO, &oldattr);
+		
+		newattr = oldattr;
+		newattr.c_lflag &= ~(ICANON);
+		newattr.c_lflag &= ~(ECHO);
+
+		tcsetattr(STDIN_FILENO, TCSANOW, &newattr);
+		c = getchar();
+		tcsetattr(STDIN_FILENO, TCSANOW, &oldattr);
+
+		return c;
+	}
+#endif
+
+#define APPLE 64
 
 #define goto(x, y) printf("\033[%d;%dH",(x),(y));
 #define clrscr() printf("\033[H\033[J");
@@ -14,10 +41,6 @@
 
 #define LINES 8
 #define COLS 16
-
-#define APPLE 64
-#define SNAKE 254
-#define BLANK 250
 
 #define RED "31"
 #define GREEN "32"
