@@ -73,6 +73,30 @@ int msleep(long msec){
 int running = 1;
 int addto_x = 0, addto_y = 1;
 
+void go_up(){
+	if(addto_x) return;
+	addto_x = -1;
+	addto_y = 0;
+}
+
+void go_down(){
+	if(addto_x) return;
+	addto_x = 1;
+	addto_y = 0;
+}
+
+void go_right(){
+	if(addto_y) return;
+	addto_x = 0;
+	addto_y = 1;	
+}
+
+void go_left(){
+	if(addto_y) return;
+	addto_x = 0;
+	addto_y = -1;
+}
+
 void* getkey(void* param){
 	char key;
 	while(running==1){
@@ -80,39 +104,21 @@ void* getkey(void* param){
 		switch(key){
 			case 'w':
 			case 'W':
-			case 'H':
-				if(addto_x) break;
-				addto_x = -1;
-				addto_y = 0;
-				break;
+			case 'H': go_up(); break;
 			
 			case 'a':
 			case 'A':
-			case 'K':
-				if(addto_y) break;
-				addto_x = 0;
-				addto_y = -1;
-				break;
+			case 'K': go_left(); break;
 			
 			case 'd':
 			case 'D': 
-			case 'M':
-				if(addto_y) break;
-				addto_x = 0;
-				addto_y = 1;
-				break;
+			case 'M': go_right(); break;
 			
 			case 's':
 			case 'S':
-			case 'P':
-				if(addto_x) break;
-				addto_x = 1;
-				addto_y = 0;
-				break;
+			case 'P': go_down(); break;
 				
-			case 13:
-				running=0;
-				break;
+			case 13: running=0; break;
 			
 			default: break;
 		}
@@ -210,7 +216,7 @@ void* game(void* param){
 		puts("");
 	}
 	
-	if(apple_count==(LINES*COLS)-1) printf("\033[33mCongratulations!\n\n\033[m\n");
+	if(apple_count>=(LINES*COLS)-1) printf("\033[33mCongratulations!\n\n\033[m\n");
 	else printf("\033[33mGame Over!\033[m\n");
 	
 	showcursor();
